@@ -1,0 +1,73 @@
+/home/jioh.kim/Desktop/pipe/done/02/deformerIssue/
+
+
+참고 (김도형 실장님이 보내주신거)
+https://discourse.techart.online/t/maya-deformer-evaluation-inaccuracy/5456
+
+Joint를 다시 0으로 오프셋한 다음 
+스키닝된 geo의 (잠긴) transform node를 대신 원하는 위치로 오프셋하는 것입니다.	
+이렇게 하면 geo가 RootJnt와 함께 이동하고 RootJnt가 역변환(reverse)되기 때문에 이중 변환을 방지합니다.
+RootCtrl ParentConstraint OffsetGroup
+RootCtrl ParentConstraint Model
+RootCtrl.worldMatrixInverse ↔ inverseM, decomposeM ↔ RootJoint.worldMatrix
+(RootJoint는 OffsetGroup의 자식입니다.)
+
+월드 원점에 로컬인 완전한 프록시 스켈레톤이 필요하다는 것을 방금 깨달았습니다.
+따라서 대신 정상적으로 리깅한 다음 
+스킨 처리된 스켈레톤을 복제하고 
+루트 조인트를 제외한 모든 조인트의 변환/회전/스케일을 연결하고 
+스킨을 이 프록시 스켈레톤에 바인딩하고 
+모델의 상위 그룹을 메인 컨트롤에 parentConstraint
+스키닝된 관절 계층 구조의 맨 위에는 여전히 하나의 루트 관절이 필요합니다.
+스켈레톤 애니메이션을 내보내려는 경우 한 가지 문제는 루트 뼈대 애니메이션이 손실된다는 것입니다. 하지만 메인 컨트롤의 변환 애니메이션을 배정밀도로 가져오고 다음 패키지/게임 엔진에서도 좋은 결과를 얻을 수 있습니다.
+
+############################################
+
+핵심
+geometry의 transform node에도 이동값이 들어가야 한다.
+ㄴ 1) MainCtrl > geoGrp > prntCnst
+ㄴ 2) MainCtrl.worldMatrix ↔ geoGrp.parentOffsetMatrix 
+	>> Matrix로 연결하니 페이셜 컨트롤러가 이상해짐
+ㄴ but,후반파트에서 문제될게 없는지?? 
+	>> 종요실장님께 없다고 확인받음
+
+방법
+- DeformationSystem 복사 > skinJnt으로 사용, bs 및 skinCopy
+- 기존 DeformationSystem는 리깅용으로만 사용, unbindSkin 해주기
+- rigJnt ↔ skinJnt
+- MainCtrl > geoGrp > prntCnst
+- Root 이슈 >> Root 상위에 MainRoot 만들어줌
+- SubRig: 똑같이 connection 해줘야 함
+
+
+1. 조인트 수정 - 수동
+ㄴ 서브조인트 모두 DeformationSystem 하위로
+
+2. 조인트 수정 - 자동
+2-1. cnst 노드 모두 ConstraintSystem 하위로 ㅇ
+2-2. MainRoot 최상위 조인트 만들기 ㅇ
+2-3. 조인트 복사 (prefix = 'skin_')
+2-4. 기존 조인트 ↔ 복사 조인트 (최상위 조인트 제외!)
+
+3. 스킨카피
+
+4. 리깅
+MainCtrl > geoGrp > prntCnst
+MainCtrl > MainRoot_M > prntCnst
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

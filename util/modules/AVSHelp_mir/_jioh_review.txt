@@ -1,0 +1,21 @@
+AVSHelp_mir
+
+
+roll back
+: 서브들 다 걷어내고 리빌드 후 다시 연결시켜주는거
+
+ikCtrl mirror
+
+Wrist Follow
+
+ikSub 살펴보기
+
+dual Quaternion nonRigid Setup
+
+leg flatten
+: 정면을 보지 않는 ikFeet 축을 정면으로 보게 해줌
+
+faceBuild - attatcher rig
+: world sub rig.. 내나 folSubRig 그거.. 근데 무겁다고 하심 ?
+
+FKIK switch

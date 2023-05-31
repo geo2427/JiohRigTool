@@ -1,0 +1,43 @@
+[ 모션빌더 세팅 ]
+/gstepasset/WorkLibrary/1.Animation_team/Script/_forRigger/HIKsetupTool/
+/home/jioh.kim/maya/scripts/HIKsetupTool/
+
+
+1차 피드백
+- 스킨과 조인트가 분리되어있음 > 마야 버전 문제
+- 캐릭터라이즈된 T포즈 필요 > 마야 버전 문제
+- HIK 네임 간락하게 ㅇ
+- mobu 파일 필요 ㅇ
+ㄴ 모션빌더에서 따로 export해야됨
+> v001_w02, Tpose.fbx 전달
+
+2차 피드백
+- 캐릭터라이징 (데피니션) 없음
+- 리깅 컨트롤러 없음 (geo, jnt 그룹 밖에 없음)
+- 데피니션과 컨트롤러가 없어 검수 불가
+> v001_w01으로 다시 전달
+
+3차 피드백
+- 데피니션이 실제 움직이게 될 마야 파일 리깅 컨트롤러 기준으로 두 데이터 모두 동일해야함. (현재는 발목, 허리, 목 부분이 일치하지 않음)
+ㄴ rigmocap.mb 와 Tpose.fbx 의 데피니션 정보가 같아야 함.
+ㄴ motionBuilder에서 joint를 assign하되, 컨트롤러와 컨스트레인 된 joint만 마야파일과 똑같이 assign 해줄 것
+- 마야, Chest 컨트롤러의 데피니션이 누락. ㅇ
+- 마야, 손가락 컨트롤러가 없는데 (데피니션이 컨트롤러가 아닌 조인트에 연결됨) 모캡 촬영시 손가락도 캡쳐하므로 추가 필요 ㅇ
+> AVS_HIK_Definition.xml 파일 수정하여 해결
+
+4차 피드백
+- MOCAP 데피니션 락 안 걸려 있음 ㅇ
+- RIG 손가락 데피니션 일치하도록 정리 ㅇ (애매?)
+- RIG 데피니션 스케일이 fbx와 일치하지 않는 것으로 확인됨. (source : stance 상태일때 스케일의 차이가 납니다) ㅇ
+ㄴ 세팅 전 스케일 수정 먼저 하고 HIK세팅할 것!
+
+5차 피드백
+- Rotation Limit Lock 기능 삭제. 필요없음 ㅇ
+- Mobu.Definition.Lock 잊지말것 ㅇ
+- Maya>Mobu export시 blendShape 체크해제 ?
+
+
+
+
+
+

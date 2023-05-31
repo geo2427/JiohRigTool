@@ -1,0 +1,59 @@
+
+####################### RigHelp
+
+- Constraint ㅇ
+	mo = on/off
+	parent, point, orient, scale
+
+- ChannelBox ㅇ
+	JHTool.Lock&Hide
+	JHTool.connect/disconnect
+    List Connection Script
+
+- attribute
+    ctrlCtl.Add 부분
+    ctrlCtl.Replace 부분
+
+- setColor
+	JHTool.setColor
+	ctrlCtl.color
+
+- makeOffsetGrp ㅇ
+	JHTool.MakeGroup
+    osGrp
+
+- curveShape 관련 
+	shape 네이밍 오류 수정
+
+
+####################### Tools
+
+* Tool 마다 사용방법 버튼같은거 추가해서 사용방법 적어두기..
+
+- rename ㅇ
+	Quick_rename_tool > 그냥 그대로 넣어두기
+
+- skinTool
+    UI ㅇ
+    BinSkinTool.psw 기능 ㅇ
+	JH.skinCopy 기능 ㅇ
+	JH.popup: add/replace, removeAll/Sel, MoveSkin, CleanupSkin 추가 
+	
+- simpleRigTool
+    BinSimpleRigTool 자주사용하는 기능들 수정
+    propRigTool 용도로도 사용가능하게
+    간단한 단추같은 서브들.. pri,sec,up용 vtx 세개 선택 시 리깅해주는 기능 추가?
+
+- FolSubRig
+	업글해서 .. local-world rig 에도 사용가능하게 수정 
+	(or)
+	따로 툴 또 만들기
+
+- skirt/cloakRigTool 만들기
+
+- ponyTailRigTool 만들기
+
+- propRigTool 만들기
+
+
+

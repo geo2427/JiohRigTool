@@ -1,0 +1,1762 @@
+/****************************************** Color Marker v 3.0 *********************************************************************
+                                 ________________________________________
+                                |                                        |
+                                |  Script done by: Klaudio Ladavac       |
+                                |  Contact email : klaudio2u@gmail.com   |
+                                |________________________________________|
+
+    
+>> HOW TO USE >>
+     Please check "Color Marker_HELP" text file which you get together with your download for more info on features, release notes, etc. 
+
+           
+>> NOTES >> 
+        - You can use the script for personl or/and commercial work whether you are freelance artist or you are working in the
+          studio. 
+        - Please don't distribute/share, change or reuse the script code without at least some credits. 
+        - Script is free and available for download only on my Gumroad site. If your friends/colleagues want to use it, send them direct
+          Gumroad link instead, that way they will be able to get notifications if there is an update.
+        - If you have feedback or/and suggestions feel free to send me message on email above - it's more then welcomed!
+
+**************************************************************************************************************************************/
+
+/****************** TO DO list ************************
+
+1. Option to be able to LMB+click on one of the color presets swatches and add it to the shelf button under popup menu.
+2. FAQ menu in "Help" - maybe
+
+
+
+
+*/
+
+
+//////////////////////////////////////////  SAVED Settings/Options  ///////////////////////////////////////////////////////////////////////////////////////// 
+       
+        // Save settings for Outliner/Viewport checkboxes - main UI
+        if (!`optionVar -ex "kk_chckBoxV1"`){ optionVar -iv "kk_chckBoxV1" 1; }  // the default state if it doesn't exist yet
+        if (!`optionVar -ex "kk_chckBoxV2"`){ optionVar -iv "kk_chckBoxV2" 0; }
+        int $v = `optionVar -q "kk_chckBoxV1"`;                                  // Outliner checkbox
+        int $v1 = `optionVar -q "kk_chckBoxV2"`;                                 // Viewport checkbox   
+        
+        // Color Management - Options menu
+        if (!`optionVar -ex "kk_chckBoxV3"`){ optionVar -iv "kk_chckBoxV3" 1; }
+        int $v2 = `optionVar -q "kk_chckBoxV3"`;                                 
+        
+        // Color Node Override - Options menu
+        if (!`optionVar -ex "kk_chckBoxV4"`){ optionVar -iv "kk_chckBoxV4" 1; }
+        if (!`optionVar -ex "kk_chckBoxV5"`){ optionVar -iv "kk_chckBoxV5" 0; }
+        int $v3 = `optionVar -q "kk_chckBoxV4"`;                                 // Transform
+        int $v4 = `optionVar -q "kk_chckBoxV5"`;                                 // Wireframe color
+        
+        // Color Palette Size
+        if (!`optionVar -ex "kk_chckBoxV6"`){ optionVar -iv "kk_chckBoxV6" 1; }  // Compact
+        if (!`optionVar -ex "kk_chckBoxV7"`){ optionVar -iv "kk_chckBoxV7" 0; }  // Broad
+        if (!`optionVar -ex "kk_chckBoxV8"`){ optionVar -iv "kk_chckBoxV8" 0; }  // Supersize
+        int $v5 = `optionVar -q "kk_chckBoxV6"`;                  
+        int $v6 = `optionVar -q "kk_chckBoxV7"`;  
+        int $v7 = `optionVar -q "kk_chckBoxV8"`;                                 
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+global float $compactColorPreset[];
+  
+////////////////////////////////////////////////////  MAIN UI - start  //////////////////////////////////////////////////////////////////////////////////////////////
+if ( `window -exists Markerss` ) { deleteUI Markerss; }
+window -t "Color Marker" -tlb 1 -s 1 Markerss;
+columnLayout -w 304;
+   
+   
+          string $menuBarLayout = `menuBarLayout`;
+          menu -label "Options" -to 1 testP;
+            menuItem -divider true -dividerLabel "COLOR ASSIGN MODE";
+                radioMenuItemCollection -p testP overrideNodeChks;
+                menuItem -label "Transform                 > Override"  -radioButton $v3 -c "chckRadioTrans" overrideTrans;
+                menuItem -label "Wireframe Color      > Maya tool" -radioButton $v4 -c "chckRadioWire" wireCassign;     
+            
+            
+            menuItem -divider false -en 0 -label "";
+            menuItem -divider true -dividerLabel "Wireframe Color";
+                menuItem -label "  Randomize Selected     "  -c "quickRendomColor" randomMenuColor;
+                menuItem -ob 1 -c "showRandomEditor" randomMenuColor2;
+            menuItem -divider true -dividerLabel "Utilities";
+                menuItem -label "  Swap colors  ( T  < >  Wc )"  -c "swapColorTWc";
+                menuItem -label "  Check Wire Color"  -c "checkWireColorAss";
+            menuItem -divider true -dividerLabel "Preset Palette Size";
+                radioMenuItemCollection -p testP paletteSize;
+                menuItem -label "  Compact     "  -radioButton $v5 -c "compactPaletteSwitch" compactPalette;
+                menuItem -label "  Broad  "  -radioButton $v6 -c "broadPaletteSwitch" broadPalette;
+                menuItem -label "  Supersize     " -radioButton $v7 -c "ssPaletteSwitch" ssPalette;
+            menuItem -divider true -dividerLabel "Color Management";
+                menuItem -label "  Manage Outliner               " -checkBox $v2 -c "chckBoxCheckM" manCheck;
+          
+          menu -label "Help" -to 1;
+            menuItem -divider true -dividerLabel "Tutorials (Vimeo)";
+            menuItem -label "Features Overview - v 1.0" -c "getTutorialsVimeo1";
+            menuItem -label "What's New - v 2.0" -c "getTutorialsVimeo2";
+            menuItem -label "What's New - v 2.1" -c "getTutorialsVimeo3";
+            menuItem -label "What's New - v 3.0 " -c "getTutorialsVimeo4";
+            menuItem -divider true -dividerLabel "Maya Scripts";
+            menuItem -label "Gumroad" -c "scriptsGumroad";
+            menuItem -divider true -dividerLabel "Contact";  
+            menuItem -label "Facebook" -c "webFacebook";  
+            menuItem -label "ArtStation (portfolio)" -c "webArtStation"; 
+            menuItem -divider true -dividerLabel "E-Mail";
+            menuItem -label "klaudio2u@gmail.com" -c ("warning -n \" > CTRL+C and copy E-Mail to clipboard >>> klaudio2u@gmail.com\"");
+                           
+
+              // Set Color checkboxes
+              formLayout -h 1 -w 296 -numberOfDivisions 100 colorOutliner4;
+                    text -label "" -al "left" -h 2 -w 296  -backgroundColor 0.24 0.24 0.24 bkgColor3;
+                    text -label "" -al "left" -h 20 -w 296  -backgroundColor 0.24 0.24 0.24 bkgColor6;
+                    columnLayout checkLayout;
+                        checkBoxGrp -numberOfCheckBoxes 2 -columnWidth3 120 94 10
+                        -label "Set Color                       "
+                        -v1 $v -v2 $v1 -labelArray2 " Outliner" " Viewport" 
+                        -cc1 "chckBoxCheckV1" -cc2 "chckBoxCheckV2"
+                        getCheckedBox;
+                    setParent ..; 
+                    
+                    colorSliderGrp -label "Color  " -rgb 0.5 0.5 0.5 cm_sliderSet;
+                          
+              formLayout -edit
+                   -attachForm bkgColor3 "top" 1   -attachForm bkgColor3 "left" 2
+                   -attachForm bkgColor6 "top" 5  -attachForm bkgColor6 "left" 2
+                   -attachForm checkLayout "top" 4  -attachForm checkLayout "left" 2
+                   // Color Slider 
+                   -attachForm cm_sliderSet "top" 40   -attachForm cm_sliderSet "left" -98
+                     
+              colorOutliner4; 
+              setParent ..;
+                       
+     
+           separator -height 2 -style "none";
+          
+          
+          columnLayout mainColorParent; 
+              // If COMPACT is checked in Options
+              if ($v5 == 1)  
+              {   
+                   formLayout -h 33 -w 296 -numberOfDivisions 100 compactLayout; 
+                         text -label "" -al "left" -h 29 -w 295  -backgroundColor 0.24 0.24 0.24 bkgColor2; 
+                         // Presets
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetRed" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetRed" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 1 0.224 0.224 buttonSetRed;                   
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetLRed" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetLRed" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 1 0.399 0.321 buttonSetLRed;
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetOrange" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetOrange" + "`" + " ; compactPresets($compactColorPreset)\") ")
+                                -bgc 1 0.479 0.173 buttonSetOrange;
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetYellow" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetYellow" + "`" + " ; compactPresets($compactColorPreset)\") ")
+                                -bgc 1 1 0.390 buttonSetYellow;
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetGreen" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetGreen" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 0.527 1 0.276 buttonSetGreen;   
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetCyan" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetCyan" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 0.321 1 0.869 buttonSetCyan;  
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetBlue" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetBlue" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 0.256 0.628 1 buttonSetBlue;                                             
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetPink" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetPink" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 1 0.442 0.706 buttonSetPink; 
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 0.763 0.332 0.892 buttonSetViolet; 
+                         button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet2" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet2" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                                -bgc 0.466 0.200 0.892 buttonSetViolet2;                                 
+                                                      
+                    formLayout -edit
+                      // BKG
+                      -attachForm bkgColor2 "top" 6   -attachForm bkgColor2 "left" 1  
+                      // Color presets
+                      -attachForm buttonSetRed "top" 9    -attachForm buttonSetRed "left" 5
+                      -attachForm buttonSetLRed "top" 9   -attachForm buttonSetLRed "left" 34
+                      -attachForm buttonSetOrange "top" 9  -attachForm buttonSetOrange "left" 63
+                      -attachForm buttonSetYellow "top" 9  -attachForm buttonSetYellow "left" 92
+                      -attachForm buttonSetGreen "top" 9   -attachForm buttonSetGreen "left" 121
+                      -attachForm buttonSetCyan "top" 9    -attachForm buttonSetCyan "left" 150
+                      -attachForm buttonSetBlue "top" 9    -attachForm buttonSetBlue "left" 179
+                      -attachForm buttonSetPink "top" 9   -attachForm buttonSetPink "left" 208
+                      -attachForm buttonSetViolet "top" 9   -attachForm buttonSetViolet "left" 237
+                      -attachForm buttonSetViolet2 "top" 9  -attachForm buttonSetViolet2 "left" 266                                                               
+                    compactLayout; 
+                    setParent ..; 
+              } 
+              // If BROAD is checked in Options
+              if ($v6 == 1) 
+              { 
+                  broadPaletteSwitch();
+              }
+              // If SUPERSIZE is checked in Options
+              if ($v7 == 1)    
+              {
+                  ssPaletteSwitch(); 
+              }      
+          setParent ..;
+          
+
+                
+          formLayout -h 33 -w 296 -numberOfDivisions 100 colorOutliner2;     
+                 text -label "" -al "left" -h 29 -w 295  -backgroundColor 0.24 0.24 0.24 bkgColor; 
+                 
+                 button -label "Apply Color" -w 110 -c "applyOutlinerColor; repeatLast -ac applyOutlinerColor" buttonM1;
+                 button -label "Select" -w 50 -c "selectAllSameColor; repeatLast -ac selectAllSameColor" buttonM2;         
+                 button -label "Copy" -w 50 -c "ccOutlinerColor; repeatLast -ac ccOutlinerColor" buttonM3;
+                     popupMenu -parent buttonM3;          
+                         menuItem -en false -label "Get color from  "; 
+                         menuItem -label "    Outliner  " -command "copyWireOut";
+                         menuItem -label "    Viewport  " -command "copyOutWire";
+                 button -label "Reset" -w 50 -c "resetOutlinerColor; repeatLast -ac resetOutlinerColor" buttonM4;
+
+           formLayout -edit
+                  // Background
+                  -attachForm bkgColor "top" 2    -attachForm bkgColor "left" 2 
+                  //Buttons
+                  -attachForm buttonM1 "top" 5   -attachForm buttonM1 "left" 6
+                  -attachForm buttonM2 "top" 5   -attachForm buttonM2 "left" 134
+                  -attachForm buttonM3 "top" 5   -attachForm buttonM3 "left" 188
+                  -attachForm buttonM4 "top" 5   -attachForm buttonM4 "left" 242
+           colorOutliner2;  
+           setParent ..;
+             
+
+showWindow Markerss;
+window -e -h 154 Markerss;
+
+
+
+// text indicator - Transform or Shape            
+int $radioTrans = `optionVar -q "kk_chckBoxV4"`;
+if ($radioTrans == 1)
+{
+    // Indicator set to -T- in window main title
+    window -edit -t "Color Marker     - T -" Markerss;
+}
+else
+{
+    // Indicator set to -Wc- in window main title
+    window -edit -t "Color Marker     - Wc -" Markerss;
+}
+//////////////////////////////////////////////////////////  MAIN UI - end  ////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// Checkbox Settings
+global proc chckBoxCheckV1()                                   // Set Color - Outliner checkbox  (main UI)
+{ 
+       int $v = `checkBoxGrp -q -v1 getCheckedBox`;
+       optionVar -iv "kk_chckBoxV1" $v;
+}
+global proc chckBoxCheckV2()                                   // Set Color - Viewport checkbox  (main UI)
+{
+       int $v1 = `checkBoxGrp -q -v2 getCheckedBox`;
+       optionVar -iv "kk_chckBoxV2" $v1;
+}
+
+global proc chckBoxCheckM()                                    // Color Manage  (Options menu)
+{
+       int $v2 = `menuItem -q -checkBox manCheck`;
+       optionVar -iv "kk_chckBoxV3" $v2;
+}
+
+global proc chckRadioTrans()                                    // Override Node Transofrom  (Options menu)
+{
+       int $v3 = `menuItem -q -rb overrideTrans`;
+       optionVar -iv "kk_chckBoxV4" $v3;
+       
+       optionVar -iv "kk_chckBoxV5" 0;  // set WireColor to 0
+       
+       // Indicator set to -T- in window main title 
+       window -edit -t "Color Marker     - T -" Markerss;                 
+}
+
+global proc chckRadioWire()                                    // Wireframe Color  (Options menu)
+{      
+       int $v4 = `menuItem -q -rb wireCassign`;
+       optionVar -iv "kk_chckBoxV5" $v4;
+       
+       optionVar -iv "kk_chckBoxV4" 0;  // set Transform to 0
+       
+       // Indicator set to -Wc- in window main title           
+       window -edit -t "Color Marker     - Wc -" Markerss;
+}
+
+
+
+
+// Apply Color
+global proc applyOutlinerColor() 
+{ 
+     int $chkOutliner = `checkBoxGrp -q -v1 getCheckedBox`;    // Outliner checkbox
+     int $chkViewport = `checkBoxGrp -q -v2 getCheckedBox`;    // Viewport checkbox
+     int $chkManage = `menuItem -q -checkBox manCheck`;        // Color Manage (in Options)
+     int $radioTrans = `menuItem -q -rb overrideTrans`;        // Transform override 
+     int $radioWc = `menuItem -q -rb wireCassign`;             // Wireframe color...
+
+     // If objects are selected
+     if (size(`ls -sl`) >= 1 ) 
+     {
+             // Get color from the slider set manually
+             float $gSCols[] = `colorSliderGrp -q -rgb cm_sliderSet`;
+             // transforms selected objects
+             string $colorAC[] = `ls -sl -tr`;  
+             string $colorAC_s[] = `ls -sl -dag -leaf`;                              
+             
+             //// Transform - Assign Outliner Color - START -------------------------------------------------------------
+             if ($radioTrans == 1)
+             {                  
+                     for ($a=0; $a < size($colorAC); $a++ )
+                     {    
+                           
+                           // If Outliner checkbox is ON
+                           if ($chkOutliner == 1)
+                           {                        
+                                    // If Color Manage checkbox if ON / OFF 
+                                    if ($chkManage == 1)
+                                    {
+                                         $gSColsCCr = pow ($gSCols[0], 0.454);
+                                         $gSColsCCg = pow ($gSCols[1], 0.454);
+                                         $gSColsCCb = pow ($gSCols[2], 0.454);
+                                         setAttr ($colorAC[$a] + ".useOutlinerColor") 1;
+                                         setAttr ($colorAC[$a] + ".outlinerColor") $gSColsCCr $gSColsCCg $gSColsCCb;
+                                    }
+                                    if ($chkManage == 0)
+                                    {
+                                         setAttr ($colorAC[$a] + ".useOutlinerColor") 1;
+                                         setAttr ($colorAC[$a] + ".outlinerColor") $gSCols[0] $gSCols[1] $gSCols[2];
+                                    }
+                           }
+
+                           // If Viewport checkbox is - ON
+                           if ($chkViewport == 1)
+                           {       
+                                 
+                                 // Reset the color assigned as WireframeColor first (since overrides on Transform node overlap color assigned as WireframeColor)
+                                 int $checkAss = `getAttr ($colorAC_s[$a] + ".useObjectColor")`; 
+                                 if ($checkAss == 2)
+                                 {
+                                       setAttr ($colorAC_s[$a] + ".useObjectColor") 0;
+                                       setAttr ($colorAC_s[$a] + ".wireColorRGB") -type double3 0 0 0;
+                                 }                                  
+                                 
+                                 // Assign color on transfrom node using drawing overrides
+                                 setAttr ($colorAC[$a] + ".overrideEnabled") 1;
+                                 setAttr ($colorAC[$a] + ".overrideRGBColors") 1 ;
+                                 setAttr ($colorAC[$a] + ".overrideColorRGB") $gSCols[0] $gSCols[1] $gSCols[2];                
+                           }                       
+                     }
+             }
+             //// Transform - Assign Outliner Color - END  -------------------------------------------------------------
+             
+         
+             //// Wire Color - Assign Viewport Color - START ------------------------------------------------------------- 
+             if ($radioWc == 1)         
+             {
+                    for ($b=0; $b < size($colorAC); $b++ )
+                    {                     
+                           if ($chkOutliner == 1)  
+                           {                        
+                                    if ($chkManage == 1)
+                                    {
+                                         $gSColsCCr = pow ($gSCols[0], 0.454);
+                                         $gSColsCCg = pow ($gSCols[1], 0.454);
+                                         $gSColsCCb = pow ($gSCols[2], 0.454);
+                                         setAttr ($colorAC[$b] + ".useOutlinerColor") 1;
+                                         setAttr ($colorAC[$b] + ".outlinerColor") $gSColsCCr $gSColsCCg $gSColsCCb;
+                                    }
+                                    if ($chkManage == 0)
+                                    {
+                                         setAttr ($colorAC[$b] + ".useOutlinerColor") 1;
+                                         setAttr ($colorAC[$b] + ".outlinerColor") $gSCols[0] $gSCols[1] $gSCols[2];
+                                    }
+                           }
+                           
+                           if ($chkViewport == 1)
+                           {                   
+                                 // Reset the color assigned as override on Transform first (since overrides on Transform node overlap color assigned as WireframeColor)
+                                 int $checkAss2 = `getAttr ($colorAC[$b] + ".overrideEnabled")`; 
+                                 int $checkAss3 = `getAttr ($colorAC[$b] + ".overrideRGBColors")`; 
+                                 if ( ($checkAss2 == 1) && ($checkAss3 == 1) )
+                                 {
+                                         setAttr ($colorAC[$b] + ".overrideColorRGB") -type double3 0 0 0; 
+                                         setAttr ($colorAC[$b] + ".overrideRGBColors") 0 ;
+                                         setAttr ($colorAC[$b] + ".overrideEnabled") 0;
+                                 }      
+                                  
+                                 // Assign color as WireframeColor
+                                 color -rgb $gSCols[0] $gSCols[1] $gSCols[2] $colorAC[$b];   
+                           } 
+                                             
+                    }
+             }    
+             //// Wire Color - Assign Viewport Color - END  -------------------------------------------------------------
+             
+      select -cl;                      
+      }
+      else
+      {
+             warning -n  " -- INFO -- Nothing is selected! Select something then `Apply Color` again!";
+             return;   
+      } 
+}
+
+
+
+// Copy Color
+global proc ccOutlinerColor()
+{ 
+     int $chkOutliner = `checkBoxGrp -q -v1 getCheckedBox`;
+     int $chkViewport = `checkBoxGrp -q -v2 getCheckedBox`;
+     int $radioTrans = `menuItem -q -rb overrideTrans`;        // Transform override 
+     int $radioWc = `menuItem -q -rb wireCassign`;             // Wireframe color...  
+
+     if (size(`ls -sl`) >= 1 ) 
+     { 
+             
+             // get first selected object (for color thing to copy to others)
+             string $colorCC[] = `ls -sl -tr`;
+                 // Get Color Status from TRANSFORM Nodes
+                 float $getRGBColorO[] = `getAttr ($colorCC[0] + ".outlinerColor")`; // Outliner 
+                 int $getUseColor = `getAttr ($colorCC[0] + ".useOutlinerColor")`;
+
+                 int $getUseColorView = `getAttr ($colorCC[0] + ".overrideEnabled")`;       // Viewport ( Transform drawing override) 
+                 float $getRGBColorV[] = `getAttr ($colorCC[0] + ".overrideColorRGB")`;       
+                 
+                 // Get Color Status from SHAPE Nodes for WireCOlor
+                 string $colorCC_shapes[] = `ls -sl -dag -leaf`;
+                 int $getUseColorView_Wc = `getAttr($colorCC_shapes[0] + ".useObjectColor")`;      // check if WC is enabled on the object (if yes - should be 2, if no then 0
+                 float $getRGBColorV_Wc[] = `getAttr($colorCC_shapes[0] + ".wireColorRGB")`;        // get the color
+             // deselect first object 
+             select -d $colorCC[0];
+                    
+                       
+             // Get Transform nodes
+             string $colorCC1[] = `ls -sl -tr`;
+             // get shapes (used to check if WireColor is on or off)
+             string $colorCC1_s[] = `ls -sl -dag -leaf`;  
+
+                 
+             //// Transform - Assign Outliner/Viewport Color - START -------------------------------------------------------------    
+             if ($radioTrans == 1)
+             {                     
+                     //for ($eachCC in $colorCC1) 
+                     for ($c=0; $c < size($colorCC1); $c++ )  
+                     { 
+                             // If Outliner checkbox  - ON
+                             if ($chkOutliner == 1)
+                             {     
+                                   if ($getUseColor == 1) 
+                                   {
+                                       setAttr ($colorCC1[$c] + ".useOutlinerColor") 1;
+                                       setAttr ($colorCC1[$c] + ".outlinerColor") $getRGBColorO[0] $getRGBColorO[1] $getRGBColorO[2];
+                                   }
+                                   else
+                                   {    
+                                       warning -n  " -- INFO -- First selected object has no Outliner color set!";       
+                                       select -cl;                         
+                                       return;
+                                   } 
+                             }
+                             
+                             // If Viewport checkbox  - ON
+                             if ($chkViewport == 1) 
+                             {
+                                        if ($getUseColorView == 1)
+                                        {     
+                                              // Drawing Override on Transfrom has priority to show wireframe color. If you assign WireColor, it will not show so this checks if there is drawing override
+                                              // and if there is on the object - disable - so that WireColor can show in the viewports (as wire)  
+                                              int $checkS = `getAttr ($colorCC1_s[$c] + ".useObjectColor")`; 
+                                              if ($checkS == 2)
+                                              {
+                                                   setAttr ($colorCC1_s[$c] + ".useObjectColor") 0;
+                                                   setAttr ($colorCC1_s[$c] + ".wireColorRGB") -type double3 0 0 0;
+                                              }     
+                                              
+                                              // transform copy/assign color
+                                              setAttr ($colorCC1[$c] + ".overrideEnabled") 1;
+                                              setAttr ($colorCC1[$c] + ".overrideRGBColors") 1 ;
+                                              setAttr ($colorCC1[$c] + ".overrideColorRGB") $getRGBColorV[0] $getRGBColorV[1] $getRGBColorV[2];  
+                                        }
+                                        else
+                                        {    
+                                             warning -n  " -- INFO -- First selected object has no Viewport (Wireframe) color set!";        
+                                             select -cl; 
+                                             return;                                       
+                                        }      
+                             }  
+                       }
+              }
+              //// Transform - Assign Outliner/Viewport Color - END -------------------------------------------------------------    
+                 
+              //// Wire Color - Assign Viewport Color - START -----------------------------------------------------------------------             
+              if ($radioWc == 1)
+              {  
+                    for ($d=0; $d < size($colorCC1); $d++ )
+                    { 
+                           if ($chkOutliner == 1)  
+                           {                        
+                                   if ($getUseColor == 1) 
+                                   {
+                                       setAttr ($colorCC1[$d] + ".useOutlinerColor") 1;
+                                       setAttr ($colorCC1[$d] + ".outlinerColor") $getRGBColorO[0] $getRGBColorO[1] $getRGBColorO[2];
+                                   }
+                                   else
+                                   {    
+                                       warning -n  " -- INFO -- First selected object has no Outliner color set!";       
+                                       select -cl;                         
+                                       return;
+                                   } 
+                           }
+                           
+                           if ($chkViewport == 1)
+                           {     
+                                   if ($getUseColorView_Wc == 2) 
+                                   {
+                                          // Drawing Override on Transfrom has priority to show wireframe color - if you assign WireColor, it will not show so this checks if there is drawing override
+                                          // and if there is on the object - disable - so that WireColor can show in the viewports (as wire)
+                                          int $checkT = `getAttr ($colorCC1[$d] + ".overrideEnabled")`; 
+                                          int $checkT2 = `getAttr ($colorCC1[$d] + ".overrideRGBColors")`;
+                                          if ( ($checkT == 1) && ($checkT2 == 1) )
+                                          {
+                                              setAttr ($colorCC1[$d] + ".overrideEnabled") 0;
+                                              setAttr ($colorCC1[$d] + ".overrideRGBColors") 0;
+                                              setAttr ($colorCC1[$d] + ".overrideColorRGB") -type double3 0 0 0;
+                                          }
+                                          
+                                          // WireColor copy/assign color
+                                          color -rgb $getRGBColorV_Wc[0] $getRGBColorV_Wc[1] $getRGBColorV_Wc[2] $colorCC1[$d]; 
+                                   }
+                                   else
+                                   {    
+                                          warning -n  " -- INFO -- First selected object has no Viewport (Wireframe) color set!"; 
+                                          select -cl; 
+                                          return;
+                                   } 
+                           }                          
+                    }
+             }
+             //// Wire Color - Assign Viewport Color - END ----------------------------------------------------------------------- 
+      
+      }
+      else
+      {
+             warning -n  " -- INFO -- Nothing is selected! Select something then `Copy` again!";
+             return;   
+      } 
+      select -cl;
+      
+}
+
+
+// Reset Color
+global proc resetOutlinerColor()
+{
+     int $chkOutliner = `checkBoxGrp -q -v1 getCheckedBox`;
+     int $chkViewport = `checkBoxGrp -q -v2 getCheckedBox`;
+     int $radioTrans = `menuItem -q -rb overrideTrans`;        // Transform override 
+     int $radioWc = `menuItem -q -rb wireCassign`;             // Wireframe color...
+
+     if (size(`ls -sl`) >= 1 ) 
+     {    
+            
+             string $colorRS[] = `ls -sl -tr`;                 // Transforms
+             string $colorRS_s[] = `ls -sl -dag -leaf`;
+                 
+             
+             //// Transform - Assign Outliner Color - START  ---------------------------------------------------------
+             if ($radioTrans == 1)
+             {
+                 //for ($eachRs in $colorRS)
+                 for ($r=0; $r < size($colorRS); $r++ )
+                 {
+                          if ($chkOutliner == 1)
+                          {
+                                 $querryOutColor = getAttr ($colorRS[$r] + ".useOutlinerColor");
+                                 if ( $querryOutColor == 1) 
+                                 {
+                                     setAttr ($colorRS[$r] + ".outlinerColor") 0 0 0;  
+                                     setAttr ($colorRS[$r] + ".useOutlinerColor") 0;
+                                 }
+                          } 
+                          if ($chkViewport == 1)
+                          {
+                                setAttr ($colorRS[$r] + ".overrideColorRGB") 0 0 0; 
+                                setAttr ($colorRS[$r] + ".overrideRGBColors") 0;
+                                setAttr ($colorRS[$r] + ".overrideEnabled") 0;  
+                          }              
+                  }  
+               
+             }
+             //// Transform - Assign Outliner Color - END  -----------------------------------------------------------
+             
+             //// Wire Color - Assign Viewport Color - START -------------------------------------------------------------
+             if ($radioWc == 1)
+             {
+                   if ($chkOutliner == 1)
+                   {        
+                        for ($t=0; $t < size($colorRS); $t++ )
+                        {
+
+                             $querryOutColor2 = getAttr ($colorRS[$t] + ".useOutlinerColor");
+                             if ( $querryOutColor2 == 1) 
+                             {
+                                 setAttr ($colorRS[$t] + ".outlinerColor") 0 0 0;
+                                 setAttr ($colorRS[$t] + ".useOutlinerColor") 0;
+                             }
+                        }
+                              
+                   }  
+                   
+                   if ($chkViewport == 1) 
+                   {
+                        for ($ts=0; $ts < size($colorRS_s); $ts++ )
+                        {                         
+                           setAttr($colorRS_s[$ts] + ".wireColorRGB") 0 0 0;
+                           setAttr($colorRS_s[$ts] + ".useObjectColor") 0;   
+                        }    
+                   }              
+                 
+             }
+             //// Wire Color - Assign Viewport Color - END -------------------------------------------------------------   
+      
+             select -cl; 
+      }
+      else
+      {
+             warning -n  " -- INFO -- Nothing is selected! Select something then `Reset` again!";
+             return;   
+      } 
+}
+
+// Select All with the same Color
+global proc selectAllSameColor()
+{
+     int $chkOutliner = `checkBoxGrp -q -v1 getCheckedBox`;
+     int $chkViewport = `checkBoxGrp -q -v2 getCheckedBox`;
+     int $radioTrans = `menuItem -q -rb overrideTrans`;         
+     int $radioWc = `menuItem -q -rb wireCassign`;                    
+
+     string $saveArray_1;
+     string $saveArray_2;
+     string $saveArray_2f;
+     string $saveArray_3;  
+     string $saveArray_4;
+     string $saveArray_4f;
+
+     string $off_Outliner[];
+     string $sameColor_Outliner[];
+     string $sameColor_OutlinerF[];
+     string $off_ViewportRGB[];
+     string $sameColor_Viewport[];
+     string $sameColor_ViewportF[];
+     
+    
+     
+   if (size(`ls -sl`) >= 1 ) 
+   { 
+          
+             // Get Transform nodes
+             string $colorSA[] = `ls -sl -tr`;
+             // Get Shape nodes
+             string $colorSA_s[] = `ls -sl -dag -leaf`;  
+               
+  
+            // OUTLINER color select - START  ------------------------------------------------------------------- 
+            if (($chkOutliner == 1) && ($radioTrans == 1))     // If Outliner AND Translate Mode (in Options) checkbox is ON
+            { 
+                   for ($s=0; $s < size($colorSA); $s++ )
+                   {                                                                                       
+                        // Outliner color get to compare
+                        float $qOutColors[] = `getAttr ($colorSA[$s] + ".outlinerColor")`;            
+                                
+                                      // Get all transform nodes in the scene                           
+                                     string $colorSA2[] =  `ls -type "transform"`;
+                                     for ($x=0; $x < size($colorSA2); $x++ ) 
+                                     {  
+                                           
+                                           $querryView = `getAttr ($colorSA2[$x] + ".useOutlinerColor")`;
+                                                if ( $querryView == 0) 
+                                                {  
+                                                    $saveArray_1 += (" " + $colorSA2[$x]);   
+                                                }   
+                                     }
+                                     
+                                     // convert to Array object that have "Use Outliner Color" - OFF
+                                     $off_Outliner = stringToStringArray($saveArray_1, " "); 
+                                     $saveArray_1 = ""; // clear array
+                                     
+                                     
+                                     // Boolean difference between initial array and new (with Outliner Color Off)
+                                     string $diff_1[] = stringArrayRemoveExact($off_Outliner, $colorSA2);                             
+                                                 
+                                     for ($y=0; $y < size($diff_1); $y++ )   
+                                     {                                           
+                                            // compare colors
+                                            float $gTheColors[] = `getAttr ($diff_1[$y] + ".outlinerColor")`;
+                                            if ( ($gTheColors[0] == $qOutColors[0]) && ($gTheColors[1] == $qOutColors[1]) && ($gTheColors[2] == $qOutColors[2]) )
+                                            {
+                                                $saveArray_2 += (" " + $diff_1[$y]);
+                                            }
+
+                                     }
+                                         
+                                     $sameColor_Outliner = stringToStringArray($saveArray_2, " "); 
+                                     $saveArray_2 = ""; 
+                                                                                                   
+
+                           for ($f=0; $f < size($sameColor_Outliner); $f++ )
+                           {
+                                $saveArray_2f += (" " + $sameColor_Outliner[$f]);
+                           }
+                    }            
+                    
+                    $sameColor_OutlinerF = stringToStringArray($saveArray_2f, " "); 
+                    select -r $sameColor_OutlinerF;
+                   
+                    // Clear stored
+                    $saveArray_2f = "";         
+               
+
+           }
+           // OUTLINER color select - END  -------------------------------------------------------------------
+    
+    
+   
+           // TRANSFORM VIEWPORT color select - START  -------------------------------------------------------------------
+           if (($chkViewport == 1) && ($radioTrans == 1)) // If Viewport checkbox is ON
+           {                               
+                  
+                    for ($sa=0; $sa < size($colorSA); $sa++ )   
+                    {                                     
+                                 // Viewport wireframe color get to compare - from drawing overrides
+                                 float $qOutColors2[] = `getAttr ($colorSA[$sa] + ".overrideColorRGB")`; 
+                                 string $colorSA3[] =  `ls -type "transform"`;                         
+                                 
+                                 
+                                 for ($z=0; $z < size($colorSA3); $z++ )  
+                                 { 
+                                            
+                                            $querryView1 = `getAttr ($colorSA3[$z] + ".overrideRGBColors")`;
+                                            if ( $querryView1 == 0) 
+                                            {  
+                                                $saveArray_3 += (" " + $colorSA3[$z]);  
+                                            }                
+                                 } 
+                                             
+                                 // convert to Array object that have "RGB color" - OFF in drawing overrides
+                                 $off_ViewportRGB = stringToStringArray($saveArray_3, " "); 
+                                 $saveArray_3 = ""; // clear array
+                             
+                             
+                                 string $diff_2[] = stringArrayRemoveExact($off_ViewportRGB, $colorSA3);                   
+                                 
+                                     for ($c=0; $c < size($diff_2); $c++ )   
+                                     {                                                 
+                                            float $gTheColors2[] = `getAttr ($diff_2[$c] + ".overrideColorRGB")`;                                               
+                                            if ( ($gTheColors2[0] == $qOutColors2[0]) && ($gTheColors2[1] == $qOutColors2[1]) && ($gTheColors2[2] == $qOutColors2[2]) )
+                                            {
+                                                $saveArray_4 += (" " + $diff_2[$c]);
+                                            }
+                                            
+                                     }
+                                     
+                                     $sameColor_Viewport = stringToStringArray($saveArray_4, " "); 
+                                     $saveArray_4 = "";  
+         
+
+                            
+                            for ($d=0; $d < size($sameColor_Viewport); $d++ )
+                            {
+                                $saveArray_4f += (" " + $sameColor_Viewport[$d]);
+                            }
+                   
+                   }              
+
+                   $sameColor_ViewportF = stringToStringArray($saveArray_4f, " "); 
+                   select -r $sameColor_ViewportF;
+      
+                   // Clear stored
+                   $saveArray_4f = "";   
+                        
+
+                   // If Outliner checkbox is also turned ON then add it's selection
+                   if ( ($chkOutliner == 1) && ($radioTrans == 1) )
+                   {
+                       select -add $sameColor_OutlinerF;
+                   } 
+                
+           }    
+           // TRANSFORM VIEWPORT color select - END  ---------------------------------------------------------- 
+                  
+                  
+           // WireColor -Wc- OUTLINER color select - START  ---------------------------------------------------------- 
+            if (($chkOutliner == 1) && ($radioWc == 1))   
+            { 
+                   for ($s=0; $s < size($colorSA); $s++ )
+                   {                                                                                       
+                        // Outliner color get to compare
+                        float $qOutColors[] = `getAttr ($colorSA[$s] + ".outlinerColor")`;            
+                                
+                                      // Get all transform nodes in the scene                           
+                                     string $colorSA2[] =  `ls -type "transform"`;
+                                     for ($x=0; $x < size($colorSA2); $x++ ) 
+                                     {  
+                                           
+                                           $querryView = `getAttr ($colorSA2[$x] + ".useOutlinerColor")`;
+                                                if ( $querryView == 0) 
+                                                {  
+                                                    $saveArray_1 += (" " + $colorSA2[$x]);   
+                                                }   
+                                     }
+                                     
+                                     // convert to Array object that have "Use Outliner Color" - OFF
+                                     $off_Outliner = stringToStringArray($saveArray_1, " "); 
+                                     $saveArray_1 = ""; // clear array
+                                     
+                                     
+                                     // Boolean difference between initial array and new (with Outliner Color Off)
+                                     string $diff_1[] = stringArrayRemoveExact($off_Outliner, $colorSA2);                             
+                                                 
+                                     for ($y=0; $y < size($diff_1); $y++ )   
+                                     {                                           
+                                            // compare colors
+                                            float $gTheColors[] = `getAttr ($diff_1[$y] + ".outlinerColor")`;
+                                            if ( ($gTheColors[0] == $qOutColors[0]) && ($gTheColors[1] == $qOutColors[1]) && ($gTheColors[2] == $qOutColors[2]) )
+                                            {
+                                                $saveArray_2 += (" " + $diff_1[$y]);
+                                            }
+
+                                     }
+                                         
+                                     $sameColor_Outliner = stringToStringArray($saveArray_2, " "); 
+                                     $saveArray_2 = ""; 
+                                                                                                   
+
+                           for ($f=0; $f < size($sameColor_Outliner); $f++ )
+                           {
+                                $saveArray_2f += (" " + $sameColor_Outliner[$f]);
+                           }
+                    }            
+                    
+                    $sameColor_OutlinerF = stringToStringArray($saveArray_2f, " "); 
+                    select -r $sameColor_OutlinerF;
+                   
+                    // Clear stored
+                    $saveArray_2f = "";         
+               
+
+           }
+            // WireColor -Wc- OUTLINER color select - END  ----------------------------------------------------------
+            
+            // WireColor -Wc- VIEWPORT color select - START  ----------------------------------------------------------
+           if ( ($radioWc == 1) && ($chkViewport == 1) )
+           {   
+                        for ($sw=0; $sw < size($colorSA_s); $sw++ )
+                        {  
+                                 //select $eachMain3;    
+                                 
+                                 // Viewport wireframe color get to compare - from shape using "Wireframe Color..." tool
+                                 float $qOutColors2[] = `getAttr ($colorSA_s[$sw] + ".wireColorRGB")`; 
+                                 string $colorSA3[] =  `ls -type "shape"`;                         
+                                 
+                                 
+                                 for ($z=0; $z < size($colorSA3); $z++ )  
+                                 { 
+                                            
+                                            $querryView1 = getAttr ($colorSA3[$z] + ".useObjectColor");
+                                            if ( $querryView1 != 2) 
+                                            {  
+                                                $saveArray_3 += (" " + $colorSA3[$z]);  
+                                            }                
+                                 } 
+                                             
+                                 // convert to Array object that have "RGB color" - OFF in drawing overrides
+                                 $off_ViewportRGB = stringToStringArray($saveArray_3, " "); 
+                                 $saveArray_3 = ""; // clear array
+                             
+                             
+                                 string $diff_2[] = stringArrayRemoveExact($off_ViewportRGB, $colorSA3);                   
+                                 
+                                     for ($c=0; $c < size($diff_2); $c++ )   
+                                     {                                                 
+                                            float $gTheColors2[] = `getAttr ($diff_2[$c] + ".wireColorRGB")`;
+                                            if ( ($gTheColors2[0] == $qOutColors2[0]) && ($gTheColors2[1] == $qOutColors2[1]) && ($gTheColors2[2] == $qOutColors2[2]) )
+                                            {
+                                                $saveArray_4 += (" " + $diff_2[$c]);
+                                            }
+                                            
+                                     }
+                                     
+                                     $sameColor_Viewport = stringToStringArray($saveArray_4, " "); 
+                                     $saveArray_4 = "";  
+         
+                          
+                            
+                            
+                            for ($d=0; $d < size($sameColor_Viewport); $d++ )
+                            {
+                                $saveArray_4f += (" " + $sameColor_Viewport[$d]);
+                            }
+                       }
+                        
+
+                       $sameColor_ViewportF = stringToStringArray($saveArray_4f, " "); 
+                       // Until here all Shapes are selected with the same color < convert > bellow lists all Transforms and selecte them
+                       select -r `listRelatives -p -type "transform" $sameColor_ViewportF`;
+                       
+                       // Clear stored
+                       $saveArray_4f = "";   
+                       
+
+                   // If Outliner checkbox is also turned ON then add it's selection
+                   if ( ($chkOutliner == 1) && ($radioWc == 1) )
+                   {
+                       select -add $sameColor_OutlinerF;
+                   }  
+                        
+           }    
+           // Wire Color - VIEWPORT color select - END  ----------------------------------------------------------                                   
+      
+    }
+   
+    else 
+    {
+
+         warning -n  " -- INFO -- Nothing is selected! Select something first and try to use `Select` again!";
+         return;   
+
+    }
+                
+
+}
+
+
+
+//// Editor - Randomize START ///////////////////////////////////////////////////////////////////////////////////
+global proc showRandomEditor()
+{
+
+            string $randColorEs = `window -t "Random Color - Editor" -tlb 1`;
+            columnLayout;
+            
+                formLayout -h 37 -w 434 -numberOfDivisions 100 randColorPre;
+                colorSliderGrp -label "" -cw3 0 75 120 -rgb 1 1 1 sliderUP;
+                colorSliderGrp -label "" -cw3 0 75 120 -rgb 0 0 0  sliderDO;
+                
+                text -label "" -al "left" -h 36 -w 2  -backgroundColor 0.24 0.24 0.24 divSliders;
+                
+                button -label "" -w 30 -h 13 -command "randColorT0" -bgc 1 0.470 0.175 buttonRandT0;
+                button -label "" -w 30 -h 13 -command "randColorD0" -bgc 0.568 0 1 buttonRandD0;
+                button -label "" -w 30 -h 13 -command "randColorT1" -bgc 1 0.831 0.145 buttonRandT1;
+                button -label "" -w 30 -h 13 -command "randColorD1" -bgc 1 0.355 0.324 buttonRandD1;
+                button -label "" -w 30 -h 13 -command "randColorT2" -bgc 0.608 0.899 0.088 buttonRandT2;
+                button -label "" -w 30 -h 13 -command "randColorD2" -bgc 0 0.820 0.933 buttonRandD2;
+                button -label "" -w 30 -h 13 -command "randColorT3" -bgc 0.083 0.420 0.947 buttonRandT3;
+                button -label "" -w 30 -h 13 -command "randColorD3" -bgc 0.853 0.207 0.583 buttonRandD3;
+                
+                iconTextButton -image1 "redo.png" -w 60 -h 29 -bgc 0.35 0.35 0.35 -command "doRandomSel"  doRandomize;
+                                
+                    formLayout -edit
+                          -attachForm buttonRandT0 "top" 4  -attachForm buttonRandT0 "left" 4
+                          -attachForm buttonRandD0 "top" 20  -attachForm buttonRandD0 "left" 4
+                          -attachForm buttonRandT1 "top" 4  -attachForm buttonRandT1 "left" 38
+                          -attachForm buttonRandD1 "top" 20  -attachForm buttonRandD1 "left" 38 
+                          -attachForm buttonRandT2 "top" 4  -attachForm buttonRandT2 "left" 72
+                          -attachForm buttonRandD2 "top" 20  -attachForm buttonRandD2 "left" 72   
+                          -attachForm buttonRandT3 "top" 4  -attachForm buttonRandT3 "left" 106
+                          -attachForm buttonRandD3 "top" 20  -attachForm buttonRandD3 "left" 106 
+                          
+                          -attachForm divSliders "top" 1  -attachForm divSliders "left" 145
+                          
+                          -attachForm sliderUP "top" 2  -attachForm sliderUP "left" 153
+                          -attachForm sliderDO "top" 19 -attachForm sliderDO "left" 153 
+                          
+                          -attachForm doRandomize "top" 4  -attachForm doRandomize "left" 370     
+                    randColorPre;
+                    
+           showWindow $randColorEs;
+     
+}
+
+global proc randColorT0() { colorSliderGrp -e -rgb 1 0.188 0.025 sliderUP; }
+global proc randColorD0() { colorSliderGrp -e -rgb 0.283 0 1 sliderDO; }
+
+global proc randColorT1() { colorSliderGrp -e -rgb 1 0.658 0.018 sliderUP; }
+global proc randColorD1() { colorSliderGrp -e -rgb 1 0.102 0.084 sliderDO; }
+
+global proc randColorT2() { colorSliderGrp -e -rgb 0.328 0.791 0.008 sliderUP; }
+global proc randColorD2() { colorSliderGrp -e -rgb 0 0.638 0.855 sliderDO; }
+
+global proc randColorT3() { colorSliderGrp -e -rgb 0.007 0.147 0.888 sliderUP; }
+global proc randColorD3() { colorSliderGrp -e -rgb 0.701 0.034 0.301 sliderDO; }
+
+
+global proc doRandomSel()
+{
+    
+     int $radioTrans = `menuItem -q -rb overrideTrans`;         
+     int $radioWc = `menuItem -q -rb wireCassign`;   
+    
+     if (size(`ls -sl`) >= 1 ) 
+     { 
+             
+                //get the objects
+                string $objectS[] = `ls -sl -tr` ;
+                string $objectS_s[] = `ls -sl -dag -leaf`;  
+
+                //loop through new selection object and assign random colors
+                int $objNumbers = size($objectS); 
+                for ($k = 0; $k < $objNumbers; $k ++) 
+                {               
+                        // get color from sliders
+                        float $rgb_UP[] = `colorSliderGrp -q -rgb sliderUP`;
+                        float $rgb_DOWN[] = `colorSliderGrp -q -rgb sliderDO`;
+                        
+                        // get random number
+                        $randomR = rand($rgb_UP[0], $rgb_DOWN[0]);
+                        $randomG = rand($rgb_UP[1], $rgb_DOWN[1]);
+                        $randomB = rand($rgb_UP[2], $rgb_DOWN[2]);
+                        
+                        // assign colors - drawing override on transform node
+                        if ($radioTrans == 1)
+                        {                       
+                             // Reset the color assigned as WireframeColor first (since overrides on Transform node overlap color assigned as WireframeColor)
+                             int $checkAss4 = `getAttr ($objectS_s[$k] + ".useObjectColor")`; 
+                             if ($checkAss4 == 2)
+                             {
+                                   setAttr ($objectS_s[$k] + ".wireColorRGB") -type double3 0 0 0;
+                                   setAttr ($objectS_s[$k] + ".useObjectColor") 0;
+                             }  
+                              
+                             // assign color
+                             setAttr ($objectS[$k] + ".overrideEnabled") 1;
+                             setAttr ($objectS[$k] + ".overrideRGBColors") 1 ;
+                             setAttr ($objectS[$k] + ".overrideColorRGB") -type double3 $randomR $randomG $randomB;
+                        }
+                        
+                        // assign wire color using - Wireframe Color.... Maya tool
+                        if ($radioWc == 1)
+                        {
+                             int $checkAss5 = `getAttr ($objectS[$k] + ".overrideEnabled")`; 
+                             int $checkAss6 = `getAttr ($objectS[$k] + ".overrideRGBColors")`; 
+                             if ( ($checkAss5 == 1) && ($checkAss6 == 1) )
+                             {
+                                     setAttr ($objectS[$k] + ".overrideColorRGB") -type double3 0 0 0; 
+                                     setAttr ($objectS[$k] + ".overrideRGBColors") 0 ;
+                                     setAttr ($objectS[$k] + ".overrideEnabled") 0;
+                             }     
+                         
+                             color -rgb $randomR $randomG $randomB $objectS[$k]; 
+                        }
+                    
+                }
+
+    
+    }
+    else
+    {
+         warning -n  " -- INFO -- Nothing is selected! Select something first and try to Randomize colors again!";
+         return;  
+    }
+
+
+}
+
+
+//// Editor END ///////////////////////////////////////////////////////////////////////////////////
+        
+global proc quickRendomColor()
+{
+    
+     int $radioTrans = `menuItem -q -rb overrideTrans`;         
+     int $radioWc = `menuItem -q -rb wireCassign`;   
+    
+     if (size(`ls -sl`) >= 1 ) 
+     { 
+         
+            //get the objects
+            string $objectSel[] = `ls -sl -tr` ;
+            string $objectSel_s[] = `ls -sl -dag -leaf`;         
+
+            //loop through new selection object and assign random colors
+            int $objNumber = size($objectSel); 
+            for ($k = 0; $k < $objNumber; $k ++) 
+            {              
+                    // get random number
+                    $randomW_R = rand(0.05, 0.95);
+                    $randomW_G = rand(0.05, 0.95);
+                    $randomW_B = rand(0.05, 0.95);
+
+                        if ($radioTrans == 1)
+                        {                      
+                             int $checkAss7 = `getAttr ($objectSel_s[$k] + ".useObjectColor")`; 
+                             if ($checkAss7 == 2)
+                             {
+                                   setAttr ($objectSel_s[$k] + ".wireColorRGB") -type double3 0 0 0;
+                                   setAttr ($objectSel_s[$k] + ".useObjectColor") 0;
+                             }   
+                         
+                             setAttr ($objectSel[$k] + ".overrideEnabled") 1;
+                             setAttr ($objectSel[$k] + ".overrideRGBColors") 1 ;
+                             setAttr ($objectSel[$k] + ".overrideColorRGB") -type double3 $randomW_R $randomW_G $randomW_B;
+                        }
+                    
+                        if ($radioWc == 1)
+                        {
+                             int $checkAss8 = `getAttr ($objectSel[$k] + ".overrideEnabled")`; 
+                             int $checkAss9 = `getAttr ($objectSel[$k] + ".overrideRGBColors")`; 
+                             if ( ($checkAss8 == 1) && ($checkAss9 == 1) )
+                             {
+                                     setAttr ($objectSel[$k] + ".overrideColorRGB") -type double3 0 0 0; 
+                                     setAttr ($objectSel[$k] + ".overrideRGBColors") 0 ;
+                                     setAttr ($objectSel[$k] + ".overrideEnabled") 0;
+                             }  
+                                
+                             color -rgb $randomW_R $randomW_G $randomW_B $objectSel[$k]; 
+                        } 
+                
+            }
+   
+    }
+    else
+    {
+         warning -n  " -- INFO -- Nothing is selected! Select something first and try to Randomize colors again!";
+         return;  
+    }
+
+
+
+}           
+  
+   
+                
+//// Color Presets - Compact ///////////////////////////////////////////////////////////////////////////////////
+global proc compactPresets(float $compactColorPreset[])
+{
+     int $chkOutliner = `checkBoxGrp -q -v1 getCheckedBox`;
+     int $chkViewport = `checkBoxGrp -q -v2 getCheckedBox`;
+     int $chkManage = `menuItem -q -checkBox manCheck`; 
+     int $radioTrans = `menuItem -q -rb overrideTrans`;
+     int $radioWc = `menuItem -q -rb wireCassign`;   
+        
+        
+         // SET COLOR IN SLIDER //
+         if ($chkManage == 0)
+         {
+             // $compactColorPreset is get from the pressed button background color and set as slider color
+             colorSliderGrp -edit -rgb $compactColorPreset[0] $compactColorPreset[1] $compactColorPreset[2] cm_sliderSet;   
+         }     
+         if ($chkManage == 1)
+         {
+             $ccRedCCr = pow(($compactColorPreset[0] + 0.055) / 1.055, 2.4);
+             $ccRedCCg = pow(($compactColorPreset[1] + 0.055) / 1.055, 2.4);
+             $ccRedCCb = pow(($compactColorPreset[2] + 0.055) / 1.055, 2.4); 
+            
+            colorSliderGrp -edit -rgb $ccRedCCr $ccRedCCg $ccRedCCb cm_sliderSet;  
+         }       
+        
+             
+          
+        // ASSIGN COLOR TO SELECTED //
+        // If some objects are selected
+        if ( size(`ls -sl`) >= 1 )                                                                        
+        {
+                  
+             // Get color from the slider set manually
+             float $ccSliderColor[] = `colorSliderGrp -q -rgb cm_sliderSet`;
+             // Get transforms selected objects
+             string $colorP_SelObj[] = `ls -sl -tr`;   
+             string $colorP_SelObj_s[] = `ls -sl -dag -leaf`;                       
+             
+             
+             //// Transform - Assign Outliner Color - START -------------------------------------------------------------
+             if ($radioTrans == 1)
+             {
+                    //for ($eachP_T in $colorP_SelObj)
+                    for ($cc=0; $cc < size($colorP_SelObj); $cc++ )
+                    {                          
+                           // If Outliner checkbox is ON
+                           if ($chkOutliner == 1)                   
+                           {            
+                                      // If Color Manage checkbox if ON / OFF
+                                      if ($chkManage == 0)              
+                                      {
+                                          setAttr ($colorP_SelObj[$cc] + ".useOutlinerColor") 1;
+                                          setAttr ($colorP_SelObj[$cc] + ".outlinerColor") $ccSliderColor[0] $ccSliderColor[1] $ccSliderColor[2];  
+                                      }    
+                                      if ($chkManage == 1)
+                                      { 
+                                          $gRedr = pow ($ccSliderColor[0], 0.454);
+                                          $gRedg = pow ($ccSliderColor[1], 0.454);
+                                          $gRedb = pow ($ccSliderColor[2], 0.454);
+                                          setAttr ($colorP_SelObj[$cc] + ".useOutlinerColor") 1;
+                                          setAttr ($colorP_SelObj[$cc] + ".outlinerColor") $gRedr $gRedg $gRedb;
+                                      } 
+                           }
+                       
+                           // If Viewport and Override Transform mode is - ON
+                           if ($chkViewport == 1)                
+                           {                                                                                      
+                                 
+                                 int $checkAss10 = `getAttr ($colorP_SelObj_s[$cc] + ".useObjectColor")`; 
+                                 if ($checkAss10 == 2)
+                                 {
+                                       setAttr ($colorP_SelObj_s[$cc] + ".wireColorRGB") -type double3 0 0 0;
+                                       setAttr ($colorP_SelObj_s[$cc] + ".useObjectColor") 0;
+                                 }        
+                                 
+                                 
+                                 setAttr ($colorP_SelObj[$cc] + ".overrideEnabled") 1;
+                                 setAttr ($colorP_SelObj[$cc] + ".overrideRGBColors") 1;
+                                 setAttr ($colorP_SelObj[$cc] + ".overrideColorRGB") $ccSliderColor[0] $ccSliderColor[1] $ccSliderColor[2];                               
+                           }                   
+                   }        
+             }
+             //// Transform - Assign Outliner Color - END  -------------------------------------------------------------
+
+
+             //// Wire Color - Assign Viewport Color - START ------------------------------------------------------------- 
+             if ($radioWc == 1)         
+             {
+                    for ($dd=0; $dd < size($colorP_SelObj); $dd++ )
+                    {             
+                           if ($chkOutliner == 1)                   
+                           {            
+                                      // If Color Manage checkbox if ON / OFF
+                                      if ($chkManage == 0)              
+                                      {
+                                          setAttr ($colorP_SelObj[$dd] + ".useOutlinerColor") 1;
+                                          setAttr ($colorP_SelObj[$dd] + ".outlinerColor") $ccSliderColor[0] $ccSliderColor[1] $ccSliderColor[2];  
+                                      }    
+                                      if ($chkManage == 1)
+                                      { 
+                                          $gRedr = pow ($ccSliderColor[0], 0.454);
+                                          $gRedg = pow ($ccSliderColor[1], 0.454);
+                                          $gRedb = pow ($ccSliderColor[2], 0.454);
+                                          setAttr ($colorP_SelObj[$dd] + ".useOutlinerColor") 1;
+                                          setAttr ($colorP_SelObj[$dd] + ".outlinerColor") $gRedr $gRedg $gRedb;
+                                      } 
+                           } 
+                             
+                           if ($chkViewport == 1)                
+                           {
+                                 int $checkAss11 = `getAttr ($colorP_SelObj[$dd] + ".overrideEnabled")`; 
+                                 int $checkAss12 = `getAttr ($colorP_SelObj[$dd] + ".overrideRGBColors")`; 
+                                 if ( ($checkAss11 == 1) && ($checkAss12 == 1) )
+                                 {
+                                         setAttr ($colorP_SelObj[$dd] + ".overrideColorRGB") -type double3 0 0 0; 
+                                         setAttr ($colorP_SelObj[$dd] + ".overrideRGBColors") 0 ;
+                                         setAttr ($colorP_SelObj[$dd] + ".overrideEnabled") 0;
+                                 }    
+                                
+                                color -rgb $ccSliderColor[0] $ccSliderColor[1] $ccSliderColor[2] $colorP_SelObj[$dd]; 
+                           }
+                    }
+   
+             }      
+             //// Wire Color - Assign Viewport Color - END  -------------------------------------------------------------
+             
+      select -cl;                      
+      }
+}
+
+
+
+// Get Color - Slider > RMB+clik on "Copy" button
+global proc copyWireOut()  // Outliner ( T )
+{    
+                
+        if ( size(`ls -sl`) == 0 ) 
+        { 
+             warning -n  " -- INFO -- Nothing is selected! Select something then try to get the color again!";
+             return; 
+        }
+        
+        if ( size(`ls -sl`) == 1 ) 
+        { 
+             
+  
+            string $colorGetOut[] = `ls -sl -tr`;
+            float $qurOutCol[] = `getAttr ($colorGetOut[0] + ".outlinerColor")`;
+            float $qurOutCr = pow(($qurOutCol[0] + 0.055)/1.055, 2.4);
+            float $qurOutCg = pow(($qurOutCol[1] + 0.055)/1.055, 2.4);
+            float $qurOutCb = pow(($qurOutCol[2] + 0.055)/1.055, 2.4); 
+                     
+            colorSliderGrp -edit -rgb $qurOutCr $qurOutCg $qurOutCb cm_sliderSet;
+         
+        }
+        
+        if (size(`ls -sl`) >= 2 ) 
+        {
+             warning -n  " -- INFO -- Select just one(1) object to get it's color!";
+             return;    
+        } 
+                   
+}
+
+global proc copyOutWire()  // Wireframe  ( T )
+{
+     int $radioTrans = `menuItem -q -rb overrideTrans`;
+     int $radioWc = `menuItem -q -rb wireCassign`;   
+        
+        
+        if ( size(`ls -sl`) == 0 ) 
+        { 
+             warning -n  " -- INFO -- Nothing is selected! Select something then try to get the color again!";
+             return; 
+        }
+        
+        if ( size(`ls -sl`) == 1 ) 
+        { 
+            if ($radioTrans == 1)
+            {
+                string $colorGetWire[] = `ls -sl -tr`;
+                float $qurOutColw[] = `getAttr ($colorGetWire[0] + ".overrideColorRGB")`;
+                
+                colorSliderGrp -edit -rgb $qurOutColw[0] $qurOutColw[1] $qurOutColw[2] cm_sliderSet;
+            }
+            
+            if ($radioWc == 1)
+            {
+                string $colorGetWireWc[] = `ls -sl -dag -leaf`;
+                float $qurWireWc[] = `getAttr ($colorGetWireWc[0] + ".wireColorRGB")`;
+                
+                colorSliderGrp -edit -rgb $qurWireWc[0] $qurWireWc[1] $qurWireWc[2] cm_sliderSet; 
+            }
+               
+        }
+        
+        if (size(`ls -sl`) >= 2 ) 
+        {
+             warning -n  " -- INFO -- Select just one(1) object to get it's color!";
+             return;    
+        } 
+                   
+}
+
+
+global proc swapColorTWc()  // Swap colors  ( T  < >  Wc )
+{
+        if ( size(`ls -sl`) >= 1 )                                                                        
+        {     
+        
+        
+            // Get the Wire Color from Transform node
+            string $colorGet_T[] = `ls -sl -tr`;
+      
+            
+            for ($j=0; $j < size($colorGet_T); $j++ )
+            {
+                    // check/get for -Wc- color assign
+                    string $colorGet_Wc[] = `ls -sl -dag -leaf $colorGet_T[$j]`;
+                    int $qWireWc_On = `getAttr($colorGet_Wc[0] + ".useObjectColor")`; 
+         
+                    // check/get if -T- color is assigned
+                    int $qWireT_On = `getAttr ($colorGet_T[$j] + ".overrideEnabled")`;
+                    int $qWireT_OnRGB = `getAttr ($colorGet_T[$j] + ".overrideRGBColors")`; 
+                   
+                    // Swap T > Wc
+                    if ( ($qWireT_On == 1) && ($qWireT_OnRGB == 1 ) )
+                    {
+                        // get color from transform override
+                        float $qWireT_Color[] = `getAttr ($colorGet_T[$j] + ".overrideColorRGB")`;
+                        
+                        // disable override on Transform node
+                        setAttr ($colorGet_T[$j] + ".overrideEnabled") 0;     
+                        setAttr ($colorGet_T[$j] + ".overrideRGBColors") 0; 
+                        setAttr ($colorGet_T[$j] + ".overrideColorRGB") 0 0 0;  
+                        
+                        // enable wire (Wc) and set color from transform
+                        setAttr ($colorGet_Wc[0] + ".useObjectColor") 2; 
+                        setAttr ($colorGet_Wc[0] + ".wireColorRGB") -type double3 $qWireT_Color[0] $qWireT_Color[1] $qWireT_Color[2];            
+                          
+                    }
+                    
+                    // Swap Wc > T
+                    if ($qWireWc_On == 2)
+                    {
+                        // get the color from -Wc- assigned to shape node
+                        float $qWireWc_Color[] = `getAttr ($colorGet_Wc[0] + ".wireColorRGB")`;    
+                        // zero-out all the values on shape, color assigned as -Wc-
+                        setAttr ($colorGet_Wc[0] + ".useObjectColor") 0; 
+                        setAttr ($colorGet_Wc[0] + ".wireColorRGB") -type double3 0 0 0;  
+                        
+                        // enable Transform override and set the values and color
+                        setAttr ($colorGet_T[$j] + ".overrideEnabled") 1;     
+                        setAttr ($colorGet_T[$j] + ".overrideRGBColors") 1; 
+                        setAttr ($colorGet_T[$j] + ".overrideColorRGB") -type double3 $qWireWc_Color[0] $qWireWc_Color[1] $qWireWc_Color[2];           
+                    }
+                   
+            }
+        }
+        else
+        {
+             warning -n  " -- INFO -- Nothing is selected to swap! Select objects which already have Wireframe(T) or Wireframe(Wc) assigned!";
+             return;    
+        }
+}
+
+
+global proc checkWireColorAss()
+{
+        if ( size(`ls -sl`) == 1 )                                                                        
+        { 
+             string $colorGet_check[] = `ls -sl -tr`;
+             string $colorGet_check_s[] = `ls -sl -dag -leaf`;  
+             
+             
+             int $checkCss1 = `getAttr ($colorGet_check[0] + ".overrideEnabled")`; 
+             int $checkCss2 = `getAttr ($colorGet_check[0] + ".overrideRGBColors")`; 
+             if ( ($checkCss1 == 1) && ($checkCss2 == 1) )
+             {
+                 warning -n  " -- INFO --  TRANSFORM mode - as drawing override!";
+                 return;   
+             } 
+             
+             
+             int $checkCss_s = `getAttr ($colorGet_check_s[0] + ".useObjectColor")`; 
+             if ($checkCss_s == 2)
+             {
+                 warning -n  " -- INFO --  WIREFRAME COLOR mode - as Maya tool!";
+                 return; 
+             }
+            
+        
+        }
+        else
+        {
+             warning -n  " -- INFO -- Nothing is selected to check! Select objects which already have Wireframe color assigned!";
+             return;    
+        }  
+            
+}
+
+
+// Help
+global proc getTutorialsVimeo1()
+{
+   launch -web "http://www.vimeo.com/179228102";
+}
+global proc getTutorialsVimeo2()
+{
+   launch -web "http://www.vimeo.com/197050222 ";
+}
+
+global proc getTutorialsVimeo3()
+{
+   launch -web "http://vimeo.com/221153578";
+}
+
+global proc getTutorialsVimeo4()
+{
+   launch -web "https://vimeo.com/251216661";
+}
+
+global proc scriptsGumroad()
+{
+   launch -web "http://gumroad.com/klaudio2u";
+}
+
+global proc webFacebook()
+{
+   launch -web "http://facebook.com/klaudio.ladavac";
+}
+global proc webArtStation()
+{
+   launch -web "http://artstation.com/klaudio2u";
+}
+
+
+//// Palette Size ///////////////////////////////////////////////////////////////////////////////////
+
+// Set COMPACT Mode
+global proc compactPaletteSwitch()
+{
+    $compactMode = `formLayout -exists compactLayout`;
+    $broadMode = `formLayout -exists broadLayout`;  
+    $ssMode = `formLayout -exists ssLayout`; 
+  
+       if ($compactMode == 1)  // This one is to avoid error message if you switch to the same Palette you are already on. Like this, it's just does nothing.
+       {
+          return;       
+       }
+       if ($broadMode == 1)
+       {
+          deleteUI -layout broadLayout;       
+       }
+       if ($ssMode == 1)
+       {
+          deleteUI -layout ssLayout;       
+       }
+   
+   
+           formLayout -h 33 -w 296 -numberOfDivisions 100 -parent mainColorParent compactLayout; 
+                 text -label "" -al "left" -h 29 -w 295  -backgroundColor 0.24 0.24 0.24 bkgColor2; 
+                 // Presets
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetRed" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetRed" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 1 0.224 0.224 buttonSetRed;                   
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetLRed" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetLRed" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 1 0.399 0.321 buttonSetLRed;
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetOrange" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetOrange" + "`" + " ; compactPresets($compactColorPreset)\") ")
+                        -bgc 1 0.479 0.173 buttonSetOrange;
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetYellow" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetYellow" + "`" + " ; compactPresets($compactColorPreset)\") ")
+                        -bgc 1 1 0.390 buttonSetYellow;
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetGreen" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetGreen" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 0.527 1 0.276 buttonSetGreen;   
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetCyan" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetCyan" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 0.321 1 0.869 buttonSetCyan;  
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetBlue" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetBlue" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 0.256 0.628 1 buttonSetBlue;                                             
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetPink" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetPink" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 1 0.442 0.706 buttonSetPink; 
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 0.763 0.332 0.892 buttonSetViolet; 
+                 button -label "" -w 27 -h 20 -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet2" + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "buttonSetViolet2" + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                        -bgc 0.466 0.200 0.892 buttonSetViolet2; 
+                                              
+            formLayout -edit
+              // BKG
+              -attachForm bkgColor2 "top" 6   -attachForm bkgColor2 "left" 1  
+              // Color presets
+              -attachForm buttonSetRed "top" 9    -attachForm buttonSetRed "left" 5
+              -attachForm buttonSetLRed "top" 9   -attachForm buttonSetLRed "left" 34
+              -attachForm buttonSetOrange "top" 9  -attachForm buttonSetOrange "left" 63
+              -attachForm buttonSetYellow "top" 9  -attachForm buttonSetYellow "left" 92
+              -attachForm buttonSetGreen "top" 9   -attachForm buttonSetGreen "left" 121
+              -attachForm buttonSetCyan "top" 9    -attachForm buttonSetCyan "left" 150
+              -attachForm buttonSetBlue "top" 9    -attachForm buttonSetBlue "left" 179
+              -attachForm buttonSetPink "top" 9   -attachForm buttonSetPink "left" 208
+              -attachForm buttonSetViolet "top" 9   -attachForm buttonSetViolet "left" 237
+              -attachForm buttonSetViolet2 "top" 9  -attachForm buttonSetViolet2 "left" 266                                                               
+            compactLayout; 
+            setParent ..; 
+            
+            
+            
+          // Save settings for Color Palette Size
+          optionVar -iv "kk_chckBoxV6" 1;   // Compact
+          optionVar -iv "kk_chckBoxV7" 0;   // Broad
+          optionVar -iv "kk_chckBoxV8" 0;   // Supersize
+             
+          // Set Window to correct size again
+          window -e -h 154 Markerss;
+}
+
+// Set BROAD Mode
+global proc broadPaletteSwitch()
+{
+    $compactMode = `formLayout -exists compactLayout`;
+    $broadMode = `formLayout -exists broadLayout`;  
+    $ssMode = `formLayout -exists ssLayout`;  
+  
+       
+       if ($broadMode == 1)
+       {
+          return;       
+       }
+       if ($compactMode == 1)
+       {
+          deleteUI -layout compactLayout;       
+       }
+       if ($ssMode == 1)
+       {
+          deleteUI -layout ssLayout;       
+       }
+
+       
+            global float $buttonColorsR[]; 
+            // math part
+            float $no = 24;
+            float $sum = (1 / $no);  
+        
+
+            // UI layout
+          formLayout -h 294 -w 298 -numberOfDivisions 100 -parent mainColorParent broadLayout;
+            text -label "" -al "left" -h 282 -w 297  -backgroundColor 0.24 0.24 0.24 bkgColor3;
+            gridLayout -numberOfColumns 10 -cellWidthHeight 29 23 gridColorCells;
+                
+                // Cammand called is the same as in COMPATC except changing the button name which is important to get it's background color for assignment
+                for ($i=15; $i < $no + 1; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_R" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_R" + $i + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                           -bgc $r_f 0.25 0.3 ("button_R" + $i); 
+                }                       
+                
+                for ($i=5; $i < $no + 1; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Y" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Y" + $i + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                           -bgc 0.9 $r_f 0.17 ("button_Y" + $i);  
+                }    
+
+                for ($i=$no; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_G" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_G" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc $r_f 0.8 0.2 ("button_G" + $i); 
+                }
+            
+                for ($i=4; $i < $no - 20; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Gg" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Gg" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.1 0.55 $r_f ("button_Gg" + $i); 
+                }
+                     
+                for ($i=4; $i < $no; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_B" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_B" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.15 0.65 $r_f ("button_B" + $i); 
+                }
+                
+                for ($i=$no; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bb" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bb" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.25 $r_f 0.85 ("button_Bb" + $i); 
+                }
+                 
+                for ($i=4; $i < $no; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_P" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_P" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc $r_f 0.3 0.7 ("button_P" + $i); 
+                }
+                
+                for ($i=$no - 10; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Po" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Po" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.95 0.3 $r_f ("button_Po" + $i); 
+                }
+            setParent ..;
+          
+          
+          formLayout -edit
+              // BKG
+              -attachForm gridColorCells "top" 10   -attachForm gridColorCells "left" 4   
+              -attachForm bkgColor3 "top" 7   -attachForm bkgColor3 "left" 1                                                   
+          broadLayout; 
+          setParent ..;
+          
+          
+          // Save settings for Color Palette Size
+          optionVar -iv "kk_chckBoxV6" 0;   // Compact
+          optionVar -iv "kk_chckBoxV7" 1;   // Broad
+          optionVar -iv "kk_chckBoxV8" 0;   // Supersize
+          
+          // Set Window to correct size again
+          window -e -h 414 Markerss;
+
+}
+
+
+
+// Set SUPERSIZED Mode
+global proc ssPaletteSwitch()
+{
+    $compactMode = `formLayout -exists compactLayout`;
+    $broadMode = `formLayout -exists broadLayout`;  
+    $ssMode = `formLayout -exists ssLayout`;  
+  
+       
+       if ($ssMode == 1)
+       {
+          return;       
+       }
+       if ($compactMode == 1)
+       {
+          deleteUI -layout compactLayout;       
+       }
+       if ($broadMode == 1)
+       {
+          deleteUI -layout broadLayout;       
+       }
+
+       
+            global float $buttonColorsR[]; 
+            // math part
+            float $no = 34;
+            float $sum = (1 / $no);  
+        
+
+            // UI layout
+          formLayout -h 477 -w 298 -numberOfDivisions 100 -parent mainColorParent ssLayout;
+            text -label "" -al "left" -h 466 -w 297  -backgroundColor 0.24 0.24 0.24 bkgColor3;
+            gridLayout -numberOfColumns 10 -cellWidthHeight 29 23 gridColorCells;
+
+                // Cammand called is the same as in COMPATC except changing the button name which is important to get it's background color for assignment
+                for ($i=15; $i < $no + 1; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Rs" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Rs" + $i + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                           -bgc $r_f 0.25 0.3 ("button_Rs" + $i); 
+                }                       
+                
+                for ($i=5; $i < $no + 1; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ys" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ys" + $i + "`" + " ; compactPresets($compactColorPreset)\") ") 
+                           -bgc 0.9 $r_f 0.17 ("button_Ys" + $i);  
+                }    
+
+                for ($i=$no; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Gs" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Gs" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc $r_f 0.8 0.2 ("button_Gs" + $i); 
+                }
+            
+                for ($i=4; $i < $no - 20; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ggs" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ggs" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.1 0.55 $r_f ("button_Ggs" + $i); 
+                }
+                     
+                for ($i=4; $i < $no; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bs" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bs" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.15 0.65 $r_f ("button_Bs" + $i); 
+                }
+                
+                for ($i=$no; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bbs" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Bbs" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.25 $r_f 0.85 ("button_Bbs" + $i); 
+                }
+                 
+                for ($i=4; $i < $no; $i++) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ps" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Ps" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc $r_f 0.3 0.7 ("button_Ps" + $i); 
+                }
+                
+                for ($i=$no - 10; $i > 4; $i--) 
+                {
+                    float $r_f = ($i * $sum);
+                    button -label "" -command ("$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Pos" + $i + "`" + " ; compactPresets($compactColorPreset)" + "; repeatLast -ac (\"$compactColorPreset =" + "`" + "button -q -bgc" + " " + "button_Pos" + $i + "`" + " ; compactPresets($compactColorPreset)\") ")
+                           -bgc 0.95 0.3 $r_f ("button_Pos" + $i); 
+                }
+            setParent ..;
+          
+          
+          formLayout -edit
+              // BKG
+              -attachForm gridColorCells "top" 10   -attachForm gridColorCells "left" 4   
+              -attachForm bkgColor3 "top" 7   -attachForm bkgColor3 "left" 1                                                   
+          ssLayout; 
+          setParent ..;
+          
+          // Save settings for Color Palette Size
+          optionVar -iv "kk_chckBoxV6" 0;   // Compact
+          optionVar -iv "kk_chckBoxV7" 0;   // Broad
+          optionVar -iv "kk_chckBoxV8" 1;   // Supersize
+         
+          // Set Window to correct size again
+          window -e -h 599 Markerss;
+}
+
+

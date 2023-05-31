@@ -1,0 +1,177 @@
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  Color Marker v3.0 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                               ________________________________________
+                              |                                        |
+                              |  Script done by: Klaudio Ladavac       |
+                              |  Contact email : klaudio2u@gmail.com   |
+                              |________________________________________|
+
+
+
+>> SUPPORTED MAYA VERSIONS ----------------------------------------------------------------------------------------------------
+   > All Maya 2016, including Maya LT version, and up. 
+   > Maya 2015 and older can't be supported since it does't have this particular feature which was introduced
+     first in Maya 2016.
+
+
+
+>> INSTALLATION ---------------------------------------------------------------------------------------------------------------
+   1. In Maya open Script Editor and simply open (in MEL tab) the script file "ColorMarker_v3.01.mel"
+   2. Save it in the shelf and run it - that's pretty much it.
+   3. If you want custom icon you can edit shelf icon and add the one provided with the download "K_ColorMarker_SHELF.png"
+
+
+  
+>> HOW TO USE (by feature) ----------------------------------------------------------------------------------------------------
+  
+  > SET COLOR 
+        - You can choose here whether you want to set choosen color for Outliner, Viewport (mesh wireframe, deformers, curves,
+          emmiters, joints...) separately OR, if both option are checked, both with same color at the same time. 
+   
+  > COLOR SLIDER 
+        - To choose any color. Click on it's swatch/color pot to see color wheel.
+   
+  > COLOR SWATCHES - QUICK PRESETS 
+        - Quick color presets. If nothing is selected it only sets color slider to color you click on preset. 
+          If one or more objects are selected it sets slider to choosen color and applies color to selection.
+          Depends on what you have in "Set Color". If only Outliner or Viewport (or both at the same time) is 
+          checked then the preset will add the color to it only.
+   
+  > APPLY COLOR 
+        - Assigns color set in color slider to one or more selected objects. Choose color (using slider or/and preset),
+          press the button. 
+        - Depends on what you have checked in "Set Color" - Outliner, Viewport or both at the same time.
+   
+  > SELECT
+        - Option to select all with the same color. Select one (or more) objects with certain color > press "Select" > it will
+          select all other objects that have the same color.
+        - Depends on what you have checked in "Set Color" - Outliner, Viewport or both at the same time.
+
+  > COPY
+        - For object that already has some color and you want that same color on other objects.
+        - Depends on what you have checked in "Set Color" - Outliner, Viewport or both at the same time.
+        - Use: First select the object you want to copy color FROM then the object(s) you want to copy it's color to > press "Copy".
+ 
+  > GET COLOR FROM (RMB menu under COPY button)
+        - Right mouse button click on "Copy" button will bring popup menu. Here you can choose to get color from (Outliner or 
+          Viewport) selected into color swatch (slider above). 
+   
+  > RESET
+        - Resets selected back to Maya default look.
+        - Depends on what you have checked in "Set Color" - Outliner, Viewport or both at the same time.
+    
+
+
+   > OPTIONS menu - COLOR ASSIGN MODE
+        - Transform (Override) - also referrd as "T" mode. 
+           This is how Color Maker was working so far which means that Outliner and Viewport (Wireframe) colors are asssigned on 
+           object Transform node with wireframe color assigned using drawing overrides. 
+        - Wireframe Color (Maya Tool) - also referrd as "Wc" mode.
+           In this mode the Ouliner color is still assigned on object transform node but wireframe color is assigned only by ustilizing
+           Maya tool called "Wireframe Color..." (menu > Display > Wireframe Color...). 
+           This "Wc" mode is mostly used if you use Display Layers a lot so that assigned wireframe colors are prserved if you add it in layer.
+
+   > OPTIONS menu - WIREFRAME COLOR
+        - Randomize Selected - Randomize wireframe color on selected object(s) only.
+        - Randomize Selected Options - Opens "Random Color Editor" in which you have more control over color randomization. 
+          You can choose to randomize only between specified color like different hues of green whcih then makes heavy scene
+          more readable. 
+          
+          Depends on which mode you are currently on Transform (T) or Wireframe Color (Wc). If you are on "T" then you will randomize 
+          color on transform node using drawing overrides while "Wc" will use Maya tool "Wireframe Color..." and randomize them in that way.
+
+   
+   > OPTIONS menu - UTILITIES
+        - Swap colors (T < > Wc) - Option used to swap color assignemnt between modes. For example, if you have previously assigned
+          wireframe color in "T" mode, this means that adding it in Display Layer, the color will be lost. Swap color will alow you 
+          to simply take the same color and assign it
+        
+
+   > OPTIONS menu - PRESET PALETTE SIZE 
+        - If nothing is selected and you press the button of one of the presets, the same color will be only set in slider above. 
+        - If one or more objects are selected it will assigned that color on it. Depends on "Set Color" option where it will assign 
+          color to Outliner or Viewport (or both) as well as delends on which mode you are Transfrom (T) or Wireframe Color (Wc).
+
+        - 3 size options to toggle - Compact (Default), Broad and Supersize.
+
+ 
+
+   > OPTIONS menu - COLOR MANAGEMENT
+        - This setting DOES NOT alter or do anything to Maya main Color Management you can set in preferences. All this setting
+          does is some simple math formula within the scirpt itself that takes current color values (from slider) and convert it from
+          Liner to sRGB or the other way around as needed. 
+          This is because Outliner doesn't get Maya Color Management as it is the case with the color sliders (swatchs)
+          and objects in the viewport. This means that you have Linear color in Outliner but sRGB in sliders and Viewport which then
+          all looks different. To balance this simple math formula is used so you can have always the same colors in Outliner, 
+          Color Slider (swatch), Color Preset and Viewport.
+          
+        - Option assumes that you have main Maya Color Management turn ON (default Maya). 
+        - If you want the same behaviour as Color Marker v1.x then just turn OFF "Manage" under Options in Color Marker window.
+   
+    > HELP menu 
+        - Few links that will open your default browser and take you to the link. 
+     
+
+                              
+
+ - All buttons (including color presets buttons) have options to use "repeat last command" or "G" key. 
+ - Beside adding some colors in there, alternatively could be used also as "Selection Set" since you can assign same color to
+   multiple objects in Outliner then use "Select" to get them all back to change the color on them again or just quick select 
+   the objects in the scene.        
+
+
+
+         
+>> OTHER NOTES -----------------------------------------------------------------------------------------------------------------------------------
+        - You can use the script for personl or/and commercial work whether you are freelance artist or you are working in the
+          studio. 
+        - Please don't distribute/share, change or reuse the script code without at least some credits. 
+        - Script is free and available for download on my Gumroad site. If your friends/colleagues want to use it, send them direct
+          Gumroad link instead, that way they will be able to get notification if there is an update.
+        - If you have feedback or/and suggestions feel free to send me a message on email above. 
+
+
+
+
+>> RELEASE NOTES  ---------------------------------------------------------------------------------------------------------------------------------
+
+> v3.01 - release date: 25.05.2018
+    - BUG FIX - Fixed some duplicate variables warnings. (Redeclaration of variable shadows previous declaration type of things).
+
+
+> v3.0 - release date: 16.01.2018
+    - NEW FEATURE - Added option to choose whether the wireframe color is assigned to Transform node (T) as drawing override or it is using Maya tool 
+                    "Wireframe Color..." (Wc). So far, Color Marker was assigning wireframe color by using drawing overrides on transform node of 
+                    selected object. The only problem with this is once wireframe color is assigned, the same wireframe color would be lost if you add 
+                    object in Display Layer. For those who are using Dispaly Layers a lot, you can now swith Color Marker to work in another mode which will 
+                    under the hood use Maya tool "Wireframe Color..." but with all the features of Color Marker (presets, select, copy, randomize...etc.).
+                    This will allow you to add objects in Display Layer while also preserve the wireframe color.
+                    No matter on which mode you are, the Outliner color is always assigned on object transform node. 
+
+    - NEW FEATURE - Toggle color preset pannel between Compact (default), Broad and Supersize. This should help reduce few click by using 
+                    color presets more instead of constantly going over slider. 
+
+    - NEW FEATURE - "Check Wire Color" - This option is used to quickly check where you have current wireframe color assigned. Whether it is 
+                    assigned as Trnasform (T) or Wireframe Color (Wc). 
+    - NEW FEATURE - "Swap colors (T<>Wc)" - If you have previously assigned wireframe color to objects in Transform (T) mode, with this option 
+                    you can quickly swap the same wireframe color to be assigned as WireframeColor(Wc) mode so that you can add it in Display Layer.
+
+    - UPDATE      - "Select" is now able to also perform multi selection, meaning that if you select, for example, two object with different colors
+                    it will select all the objects in the scene which have both colors assigned to them.
+    - IMPROVEMENT - "Select" option performance boost. It should work now few times faster which will be especially noticable in bigger scenes 
+                    and/or selecting lots of objects at once. 
+
+
+
+> v2.1 - release date: 11.06.2017
+    - NEW FEATURE - Added option to quickly randomize wireframe colors on selected objects. 
+    - BUG FIX - Typo in the code fixed which caused double loop through the selected objects.
+    - BUG FIX - Fixed portfolio link in Help menu
+
+
+> v2.0 - release date: 28.12.2016
+    - NEW FEATURE - Option to set "Viewport" color - color for object(mesh) wireframes, locators, curves, deformers, joints, emiters...
+    - NEW FEATURE - Set the same color for the Outliner and in the Viewport at the same time
+    - NEW FEATURE - Color correction for Outliner
+
+
+> v1.0 -  release date: 01.09.2016

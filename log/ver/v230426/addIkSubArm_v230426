@@ -1,0 +1,39 @@
+import pymel.all as pm
+
+
+def addIKSubArm():
+    
+    if not pm.objExists('IKSubArm*'):
+
+        for dir in [ '_L', '_R' ]:
+
+            ctrl = pm.PyNode('IKArm'+dir)
+            pm.addAttr(ctrl, sn='Twist', at='double', dv=0, k=1)
+            pm.connectAttr(ctrl+'.Twist', 'IKArmHandle'+dir+'.twist')
+
+            # IKlist = pm.listRelatives(ctrl)
+            IKlist = [ 'IKArmHandle'+dir, 'IKFKAlignedOffsetArm'+dir, 'IKLocalOffsetArm'+dir, 'IKmessureConstrainToArm'+dir ]
+            tmpGrp = pm.group(IKlist)
+            pm.parent(tmpGrp, w=1)
+
+            name = 'IKSubArm'+dir
+            SubGrp = pm.duplicate(pm.pickWalk(ctrl, d='up'), n='IKExtraArmSub'+dir)[0]
+            Sub = pm.rename(pm.pickWalk(SubGrp, d='down'), name)
+            
+            shape = name+'Shape'
+            pm.scale(shape+'.cv[:]', 0.8,0.8,0.8)
+            pm.setAttr(shape+'.overrideEnabled', 1)
+            pm.setAttr(shape+'.overrideColor', 20)
+
+            pm.parent(SubGrp, ctrl)
+            pm.parent(IKlist, Sub)
+            pm.delete(tmpGrp)
+            
+            [pm.deleteAttr(Sub, at=attr) for attr in ['stretchy', 'antiPop', 'Lenght1', 'Lenght2', 'Fatness1', 'Fatness2', 'volume', 'ikFollow', 'Twist', 'follow']]
+
+        pm.select(cl=1)
+        pm.displayInfo('IKSubArm Add Completed')
+        
+    else:
+        pm.warning('IKSubArm Already Exists')
+

@@ -1,0 +1,20 @@
+1. 스크립트 수정
+ㄴ Set Tpose FK ㅇ
+ㄴ createHIK시 FKIKBlend=0 (FK) 되게 ㅇ
+
+2. mobu넘기기 전 마야파일: 스크립트 수정 
+2-1. Load Tpose ㅇ
+2-2. DeformationSystem+hier모두선택 > break scale connection ㅇ
+2-3. pm.parent(CHname+'_GRP', 'DeformationSystem', w=1) ㅇ
+2-4. pm.delete(CHname+'_rig') ㅇ
+2-5. deleteUnusedNodes, optimizeScene(option중요!) ㅇ
+
+3. AVS_HIK_Definition_Mobu.xml 만들기 ㅇ
+ㄴ Mobu에서 테스트
+
+4. kngihtA 모캡 테스트 ㅇ
+ㄴ 테스트하는 방법 필기 참고
+
+5. 완료되면 상수대리님께 말씀드리고, 모든 캐릭터 모캡리깅 작업 시작 ㅇ
+
+

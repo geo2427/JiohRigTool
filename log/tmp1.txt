@@ -1,0 +1,23 @@
+
+########################## xform
+
+https://download.autodesk.com/us/maya/2009help/CommandsPython/xform.html
+https://www.youtube.com/watch?v=y0fmrqPpXB0
+
+matrix(행렬) 로 구할 수 있는 값들.
+srt 외에도.. 여러가지 값들을 구할 수 있음~
+
+
+########################## OpenMaya
+https://help.autodesk.com/view/MAYAUL/2017/ENU/?guid=__files_API_Introduction_htm
+
+API: Application Programming Interface
+
+vector, array, matrix 관련 계산 처리속도가 빠름
+당연함, C++ 로 작성됨. 
+그리고 Maya 자체가 OpenMayaAPI 으로 만들어졌음
+
+########################## shiboken
+
+- wrapinstance
+- undo 관련??
